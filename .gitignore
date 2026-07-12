@@ -1,0 +1,8 @@
+# Ignore IDE / build files at the root level
+.idea/
+.vscode/
+*.iml
+*.log
+node_modules/
+target/
+dist/
