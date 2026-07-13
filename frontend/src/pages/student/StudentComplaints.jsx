@@ -100,7 +100,7 @@ export default function StudentComplaints() {
                   <Calendar className="w-3.5 h-3.5" />
                   {format(new Date(c.createdAt), 'dd MMM yyyy, hh:mm a')}
                 </span>
-                {c.status === 'OPEN' && (
+                {c.status === 'SUBMITTED' && (
                   <button
                     onClick={() => handleDelete(c.id)}
                     className="text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors"

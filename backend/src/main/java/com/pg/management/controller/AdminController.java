@@ -1,6 +1,8 @@
 package com.pg.management.controller;
 
 import com.pg.management.dto.*;
+import com.pg.management.model.MessMenu;
+import com.pg.management.model.ElectricitySchedule;
 import com.pg.management.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +47,36 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success("Student details", adminService.getStudentById(id)));
     }
 
+    @PostMapping("/students")
+    @Operation(summary = "Create a new student (Admin)")
+    public ResponseEntity<ApiResponse<UserDto>> createStudent(@RequestBody Map<String, Object> body) {
+        UserDto dto = UserDto.builder()
+                .name((String) body.get("name"))
+                .username((String) body.get("username"))
+                .phone((String) body.get("phone"))
+                .address((String) body.get("address"))
+                .emergencyContact((String) body.get("emergencyContact"))
+                .age(body.get("age") != null ? Integer.parseInt(body.get("age").toString()) : null)
+                .rentStatus((String) body.get("rentStatus"))
+                .roomId(body.get("roomId") != null ? Long.parseLong(body.get("roomId").toString()) : null)
+                .build();
+        String password = (String) body.get("password");
+        return ResponseEntity.ok(ApiResponse.success("Student created successfully", adminService.createStudent(dto, password)));
+    }
+
+    @PutMapping("/students/{id}")
+    @Operation(summary = "Update student details (Admin)")
+    public ResponseEntity<ApiResponse<UserDto>> updateStudent(@PathVariable Long id, @RequestBody UserDto dto) {
+        return ResponseEntity.ok(ApiResponse.success("Student updated successfully", adminService.updateStudent(id, dto)));
+    }
+
+    @DeleteMapping("/students/{id}")
+    @Operation(summary = "Remove student record (Admin)")
+    public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long id) {
+        adminService.deleteStudent(id);
+        return ResponseEntity.ok(ApiResponse.success("Student removed successfully", null));
+    }
+
     @PostMapping("/students/{studentId}/verify")
     @Operation(summary = "Verify student and assign room")
     public ResponseEntity<ApiResponse<UserDto>> verifyAndAssignRoom(
@@ -69,5 +101,50 @@ public class AdminController {
         Long roomId = request.get("roomId");
         UserDto user = adminService.reassignRoom(studentId, roomId);
         return ResponseEntity.ok(ApiResponse.success("Room reassigned successfully", user));
+    }
+
+    // Weekly Mess Menu Management Endpoints
+    @PostMapping("/menu")
+    @Operation(summary = "Add/overwrite weekly mess menu item")
+    public ResponseEntity<ApiResponse<MessMenu>> addMenu(@RequestBody MessMenuRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Menu item added successfully", adminService.addMenu(request)));
+    }
+
+    @PutMapping("/menu/{id}")
+    @Operation(summary = "Update menu item text")
+    public ResponseEntity<ApiResponse<MessMenu>> updateMenu(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String menuItems = body.get("menuItems");
+        return ResponseEntity.ok(ApiResponse.success("Menu item updated successfully", adminService.updateMenu(id, menuItems)));
+    }
+
+    @DeleteMapping("/menu/{id}")
+    @Operation(summary = "Delete menu item")
+    public ResponseEntity<ApiResponse<Void>> deleteMenu(@PathVariable Long id) {
+        adminService.deleteMenu(id);
+        return ResponseEntity.ok(ApiResponse.success("Menu item deleted successfully", null));
+    }
+
+    // Electricity Shutdown Schedule Management Endpoints
+    @PostMapping("/schedule")
+    @Operation(summary = "Add electricity shutdown schedule")
+    public ResponseEntity<ApiResponse<ElectricitySchedule>> addSchedule(@RequestBody ElectricitySchedule schedule) {
+        return ResponseEntity.ok(ApiResponse.success("Schedule added successfully", adminService.addSchedule(schedule)));
+    }
+
+    @PutMapping("/schedule/{id}")
+    @Operation(summary = "Update electricity shutdown schedule")
+    public ResponseEntity<ApiResponse<ElectricitySchedule>> updateSchedule(
+            @PathVariable Long id,
+            @RequestBody ElectricitySchedule schedule) {
+        return ResponseEntity.ok(ApiResponse.success("Schedule updated successfully", adminService.updateSchedule(id, schedule)));
+    }
+
+    @DeleteMapping("/schedule/{id}")
+    @Operation(summary = "Delete electricity shutdown schedule")
+    public ResponseEntity<ApiResponse<Void>> deleteSchedule(@PathVariable Long id) {
+        adminService.deleteSchedule(id);
+        return ResponseEntity.ok(ApiResponse.success("Schedule deleted successfully", null));
     }
 }

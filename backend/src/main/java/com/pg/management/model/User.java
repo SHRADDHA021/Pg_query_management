@@ -23,7 +23,7 @@ public class User implements UserDetails {
     private String name;
 
     @Column(nullable = false, unique = true)
-    private String email;
+    private String username;
 
     @Column(nullable = false)
     private String password;
@@ -39,6 +39,10 @@ public class User implements UserDetails {
     private String phone;
     private String address;
     private String emergencyContact;
+    private Integer age;
+
+    @Column(name = "rent_status")
+    private String rentStatus = "Pending";
 
     @Column(name = "joined_date")
     private LocalDate joinedDate;
@@ -53,7 +57,7 @@ public class User implements UserDetails {
     }
 
     @Override
-    public String getUsername() { return email; }
+    public String getUsername() { return username; }
 
     @Override
     public boolean isAccountNonExpired() { return true; }

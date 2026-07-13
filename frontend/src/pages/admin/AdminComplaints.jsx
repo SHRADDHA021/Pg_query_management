@@ -11,7 +11,7 @@ export default function AdminComplaints() {
   const [selectedComplaint, setSelectedComplaint] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [adminNote, setAdminNote] = useState('');
-  const [status, setStatus] = useState('OPEN');
+  const [status, setStatus] = useState('SUBMITTED');
 
   const fetchComplaints = async () => {
     try {
@@ -144,9 +144,11 @@ export default function AdminComplaints() {
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
-              <option value="OPEN">Open (New Ticket)</option>
-              <option value="IN_PROGRESS">In Progress (Work Assigned)</option>
-              <option value="RESOLVED">Resolved (Work Completed)</option>
+              <option value="SUBMITTED">Submitted</option>
+              <option value="IN_REVIEW">In Review</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
             </select>
           </div>
 

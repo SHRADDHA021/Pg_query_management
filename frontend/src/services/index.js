@@ -1,21 +1,36 @@
 import api from './api';
 
 export const authService = {
-  register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
 };
 
 export const adminService = {
   getDashboardStats: () => api.get('/admin/dashboard'),
+
+  // Student CRUD
   getAllStudents: () => api.get('/admin/students'),
   getPendingStudents: () => api.get('/admin/students/pending'),
   getStudentById: (id) => api.get(`/admin/students/${id}`),
+  createStudent: (data) => api.post('/admin/students', data),
+  updateStudent: (id, data) => api.put(`/admin/students/${id}`, data),
+  deleteStudent: (id) => api.delete(`/admin/students/${id}`),
+
   verifyAndAssignRoom: (studentId, roomId) =>
     api.post(`/admin/students/${studentId}/verify`, { roomId }),
   rejectStudent: (studentId) =>
     api.post(`/admin/students/${studentId}/reject`),
   reassignRoom: (studentId, roomId) =>
     api.put(`/admin/students/${studentId}/room`, { roomId }),
+
+  // Mess Menu
+  addMenu: (data) => api.post('/admin/menu', data),
+  updateMenu: (id, menuItems) => api.put(`/admin/menu/${id}`, { menuItems }),
+  deleteMenu: (id) => api.delete(`/admin/menu/${id}`),
+
+  // Electricity Schedule
+  addSchedule: (data) => api.post('/admin/schedule', data),
+  updateSchedule: (id, data) => api.put(`/admin/schedule/${id}`, data),
+  deleteSchedule: (id) => api.delete(`/admin/schedule/${id}`),
 };
 
 export const roomService = {
@@ -38,25 +53,26 @@ export const complaintService = {
   deleteComplaint: (id) => api.delete(`/complaints/${id}`),
 };
 
-export const feeService = {
-  getMyFees: () => api.get('/fees/my'),
-  getAllFees: () => api.get('/fees'),
-  getStudentFees: (studentId) => api.get(`/fees/student/${studentId}`),
-  getFeesByStatus: (status) => api.get(`/fees/status/${status}`),
-  createFeeRecord: (data) => api.post('/fees', data),
-  updateFeeStatus: (id, status, remarks) =>
-    api.patch(`/fees/${id}/status`, { status, remarks }),
-  deleteFeeRecord: (id) => api.delete(`/fees/${id}`),
+export const messService = {
+  getCurrentMenu: () => api.get('/student/menu'),
+  getMenuByWeek: (weekStart) => api.get(`/student/menu?weekStart=${weekStart}`),
+  saveWeeklyMenu: (weekStart, items) =>
+    api.post('/admin/menu', { weekStartDate: weekStart, menuItems: items }),
+  saveMenuItem: (weekStart, item) =>
+    api.post('/admin/menu', { weekStartDate: weekStart, ...item }),
+  updateMenuItem: (id, menuItems) =>
+    api.put(`/admin/menu/${id}`, { menuItems }),
+  deleteMenuItem: (id) => api.delete(`/admin/menu/${id}`),
 };
 
-export const messService = {
-  getCurrentMenu: () => api.get('/mess/current'),
-  getMenuByWeek: (weekStart) => api.get(`/mess/week?weekStart=${weekStart}`),
-  saveWeeklyMenu: (weekStart, items) =>
-    api.post(`/mess/week/${weekStart}`, items),
-  saveMenuItem: (weekStart, item) =>
-    api.post(`/mess/item/${weekStart}`, item),
-  updateMenuItem: (id, menuItems) =>
-    api.patch(`/mess/item/${id}`, { menuItems }),
-  deleteMenuItem: (id) => api.delete(`/mess/item/${id}`),
+export const noticeService = {
+  getAllNotices: () => api.get('/notices'),
+  createNotice: (data) => api.post('/notices', data),
+  deleteNotice: (id) => api.delete(`/notices/${id}`),
+};
+
+export const electricityService = {
+  getAllSchedules: () => api.get('/student/schedule'),
+  createSchedule: (data) => api.post('/admin/schedule', data),
+  deleteSchedule: (id) => api.delete(`/admin/schedule/${id}`),
 };

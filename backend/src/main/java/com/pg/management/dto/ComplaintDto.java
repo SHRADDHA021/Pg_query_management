@@ -16,7 +16,7 @@ public class ComplaintDto {
     private Long id;
     private Long studentId;
     private String studentName;
-    private String studentEmail;
+    private String studentUsername;
     private String roomNumber;
     private Complaint.ComplaintCategory category;
     private String description;

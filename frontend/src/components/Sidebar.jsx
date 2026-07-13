@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Building2, AlertCircle,
-  CreditCard, Utensils, LogOut, Home, User, Menu, X,
+  Utensils, LogOut, Home, User, Menu, X,
   ChevronRight, Bell
 } from 'lucide-react';
 import { useState } from 'react';
@@ -10,8 +10,8 @@ import { useState } from 'react';
 const studentLinks = [
   { to: '/student/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/student/complaints', icon: AlertCircle, label: 'Complaints' },
-  { to: '/student/fees', icon: CreditCard, label: 'Fee Status' },
   { to: '/student/mess', icon: Utensils, label: 'Mess Menu' },
+  { to: '/student/notices-schedules', icon: Bell, label: 'Notices & Schedules' },
   { to: '/student/profile', icon: User, label: 'My Profile' },
 ];
 
@@ -20,8 +20,8 @@ const adminLinks = [
   { to: '/admin/students', icon: Users, label: 'Students' },
   { to: '/admin/rooms', icon: Building2, label: 'Rooms' },
   { to: '/admin/complaints', icon: AlertCircle, label: 'Complaints' },
-  { to: '/admin/fees', icon: CreditCard, label: 'Fees' },
   { to: '/admin/mess', icon: Utensils, label: 'Mess Menu' },
+  { to: '/admin/notices-schedules', icon: Bell, label: 'Notices & Schedules' },
 ];
 
 export default function Sidebar() {
@@ -73,7 +73,7 @@ export default function Sidebar() {
               </div>
               <div className="overflow-hidden">
                 <p className="text-white text-sm font-medium truncate">{user?.name}</p>
-                <p className="text-gray-500 text-xs truncate">{user?.email}</p>
+                <p className="text-gray-500 text-xs truncate font-mono">@{user?.username}</p>
               </div>
             </div>
           </div>

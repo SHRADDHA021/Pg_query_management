@@ -17,14 +17,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/register")
-    @Operation(summary = "Register a new user (student/admin)")
-    public ResponseEntity<ApiResponse<UserDto>> register(@Valid @RequestBody RegisterRequest request) {
-        UserDto user = authService.register(request);
-        return ResponseEntity.ok(ApiResponse.success(
-                "Registration successful! Please wait for admin verification.",
-                user));
-    }
+
 
     @PostMapping("/login")
     @Operation(summary = "Login and get JWT token")

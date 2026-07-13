@@ -17,7 +17,7 @@ public class AuthResponse {
     private String type = "Bearer";
     private Long id;
     private String name;
-    private String email;
+    private String username;
     private User.Role role;
     private User.UserStatus status;
     private String roomNumber;

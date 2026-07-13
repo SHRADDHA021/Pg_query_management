@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { PageHeader, StatsCard, LoadingSpinner, EmptyState, StatusBadge } from '../components/UI';
-import { complaintService, feeService, messService } from '../services';
-import { AlertCircle, CreditCard, Utensils, Home, Bell } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { PageHeader, StatsCard, LoadingSpinner, EmptyState, StatusBadge } from '../../components/UI';
+import { complaintService, messService } from '../../services';
+import { AlertCircle, Utensils, Home, Bell, CreditCard } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function StudentDashboard() {
@@ -10,16 +10,14 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     recentComplaints: [],
-    recentFees: [],
     todayMeals: {}
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [complaintsRes, feesRes, messRes] = await Promise.all([
+        const [complaintsRes, messRes] = await Promise.all([
           complaintService.getMyComplaints(),
-          feeService.getMyFees(),
           messService.getCurrentMenu()
         ]);
 
@@ -33,7 +31,6 @@ export default function StudentDashboard() {
 
         setData({
           recentComplaints: complaintsRes.data.data.slice(0, 3),
-          recentFees: feesRes.data.data.slice(0, 3),
           todayMeals
         });
       } catch (err) {
@@ -47,59 +44,34 @@ export default function StudentDashboard() {
 
   if (loading) return <LoadingSpinner />;
 
-  if (user?.status !== 'VERIFIED') {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="glass-card p-8 max-w-lg text-center animate-fade-in">
-          <div className="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Bell className="w-8 h-8" />
-          </div>
-          <h1 className="text-2xl font-bold text-white mb-3">Verification Pending ⏳</h1>
-          <p className="text-gray-400 mb-6">
-            Welcome to the PG Management System, <strong>{user?.name}</strong>! Your account has been registered using your email.
-            Before you can access the portal features, an Admin must verify your profile and assign you a room.
-          </p>
-          <div className="bg-white/5 rounded-xl p-4 text-sm text-gray-500">
-            Please contact the hostel management team if it takes longer than 24 hours.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Calculate unpaid/overdue fees total
-  const outstandingAmount = data.recentFees
-    .filter(f => f.status !== 'PAID')
-    .reduce((sum, f) => sum + f.amount, 0);
-
   return (
     <div className="space-y-8 animate-fade-in">
-      <PageHeader 
-        title={`Welcome, ${user.name}`} 
-        subtitle={`Room No: ${user.roomNumber || 'Not Assigned'} • Status: ${user.status}`} 
+      <PageHeader
+        title={`Welcome, ${user?.name}`}
+        subtitle={`Login ID: ${user?.username} • Room: ${user?.roomNumber || 'Not Assigned'} • Status: ${user?.status}`}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatsCard 
-          icon={Home} 
-          label="My Room Status" 
-          value={user.roomNumber || 'None'} 
+        <StatsCard
+          icon={Home}
+          label="My Room"
+          value={user?.roomNumber ? `Room ${user.roomNumber}` : 'Not Assigned'}
           color="primary"
-          subtitle={`Floor: ${user.floor || 'N/A'} • Type: ${user.roomType || 'N/A'}`}
+          subtitle={`Floor: ${user?.floor || 'N/A'} • Type: ${user?.roomType || 'N/A'}`}
         />
-        <StatsCard 
-          icon={CreditCard} 
-          label="Outstanding Rent" 
-          value={`₹${outstandingAmount}`} 
-          color={outstandingAmount > 0 ? 'warning' : 'success'}
-          subtitle={outstandingAmount > 0 ? 'Pending dues found' : 'All clear!'}
+        <StatsCard
+          icon={CreditCard}
+          label="Rent Status"
+          value={user?.rentStatus || 'Pending'}
+          color={user?.rentStatus === 'Paid' ? 'success' : 'warning'}
+          subtitle={user?.rentStatus === 'Paid' ? 'All dues cleared' : 'Payment due'}
         />
-        <StatsCard 
-          icon={AlertCircle} 
-          label="My Complaints" 
-          value={data.recentComplaints.filter(c => c.status !== 'RESOLVED').length} 
+        <StatsCard
+          icon={AlertCircle}
+          label="My Complaints"
+          value={data.recentComplaints.filter(c => c.status !== 'RESOLVED' && c.status !== 'CLOSED').length}
           color="info"
-          subtitle="Total unresolved complaints"
+          subtitle="Unresolved complaints"
         />
       </div>
 
@@ -109,6 +81,7 @@ export default function StudentDashboard() {
           <div className="flex items-center gap-2 mb-6">
             <Utensils className="w-5 h-5 text-primary-400" />
             <h2 className="text-xl font-bold text-white">Today's Mess Menu</h2>
+            <span className="ml-auto text-xs text-gray-500">{format(new Date(), 'EEEE, dd MMM')}</span>
           </div>
           <div className="space-y-4">
             {['BREAKFAST', 'LUNCH', 'DINNER'].map((meal) => (
@@ -118,7 +91,7 @@ export default function StudentDashboard() {
                     {meal}
                   </span>
                   <p className="text-gray-200">
-                    {data.todayMeals[meal] || 'No menu available yet'}
+                    {data.todayMeals[meal] || <span className="text-gray-500 italic">Menu not set</span>}
                   </p>
                 </div>
               </div>
@@ -128,11 +101,9 @@ export default function StudentDashboard() {
 
         {/* Recent Complaints */}
         <div className="glass-card p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-primary-400" />
-              <h2 className="text-xl font-bold text-white">Recent Complaints</h2>
-            </div>
+          <div className="flex items-center gap-2 mb-6">
+            <AlertCircle className="w-5 h-5 text-primary-400" />
+            <h2 className="text-xl font-bold text-white">Recent Complaints</h2>
           </div>
           {data.recentComplaints.length === 0 ? (
             <EmptyState title="No complaints raised" description="If you face any issues, feel free to report them." />

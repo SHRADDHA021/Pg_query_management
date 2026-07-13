@@ -15,12 +15,14 @@ import java.time.LocalDate;
 public class UserDto {
     private Long id;
     private String name;
-    private String email;
+    private String username;
     private User.Role role;
     private User.UserStatus status;
     private String phone;
     private String address;
     private String emergencyContact;
+    private Integer age;
+    private String rentStatus;
     private LocalDate joinedDate;
     private Long roomId;
     private String roomNumber;

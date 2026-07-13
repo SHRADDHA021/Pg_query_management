@@ -3,12 +3,16 @@ package com.pg.management.service;
 import com.pg.management.dto.*;
 import com.pg.management.model.Room;
 import com.pg.management.model.User;
+import com.pg.management.model.MessMenu;
+import com.pg.management.model.ElectricitySchedule;
 import com.pg.management.repository.ComplaintRepository;
-import com.pg.management.repository.FeeRepository;
 import com.pg.management.repository.RoomRepository;
 import com.pg.management.repository.UserRepository;
+import com.pg.management.repository.MessMenuRepository;
+import com.pg.management.repository.ElectricityScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,9 +28,10 @@ public class AdminService {
     private final UserRepository userRepository;
     private final RoomRepository roomRepository;
     private final ComplaintRepository complaintRepository;
-    private final FeeRepository feeRepository;
-    private final EmailService emailService;
+    private final MessMenuRepository messMenuRepository;
+    private final ElectricityScheduleRepository electricityScheduleRepository;
     private final AuthService authService;
+    private final PasswordEncoder passwordEncoder;
 
     public AdminDashboardStats getDashboardStats() {
         return AdminDashboardStats.builder()
@@ -36,12 +41,14 @@ public class AdminService {
                 .totalRooms(roomRepository.count())
                 .vacantRooms(roomRepository.findVacantRooms().size())
                 .fullRooms(roomRepository.findFullRooms().size())
-                .openComplaints(complaintRepository.countByStatus(com.pg.management.model.Complaint.ComplaintStatus.OPEN))
+                .openComplaints(complaintRepository.countByStatus(com.pg.management.model.Complaint.ComplaintStatus.SUBMITTED) + 
+                                complaintRepository.countByStatus(com.pg.management.model.Complaint.ComplaintStatus.IN_REVIEW))
                 .inProgressComplaints(complaintRepository.countByStatus(com.pg.management.model.Complaint.ComplaintStatus.IN_PROGRESS))
-                .resolvedComplaints(complaintRepository.countByStatus(com.pg.management.model.Complaint.ComplaintStatus.RESOLVED))
-                .unpaidFees(feeRepository.countByStatus(com.pg.management.model.FeeRecord.FeeStatus.UNPAID))
-                .overdueFees(feeRepository.countByStatus(com.pg.management.model.FeeRecord.FeeStatus.OVERDUE))
-                .paidFees(feeRepository.countByStatus(com.pg.management.model.FeeRecord.FeeStatus.PAID))
+                .resolvedComplaints(complaintRepository.countByStatus(com.pg.management.model.Complaint.ComplaintStatus.RESOLVED) + 
+                                    complaintRepository.countByStatus(com.pg.management.model.Complaint.ComplaintStatus.CLOSED))
+                .unpaidFees(0)
+                .overdueFees(0)
+                .paidFees(0)
                 .build();
     }
 
@@ -60,6 +67,107 @@ public class AdminService {
     }
 
     @Transactional
+    public UserDto createStudent(UserDto dto, String password) {
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new RuntimeException("Username already exists: " + dto.getUsername());
+        }
+
+        Room room = null;
+        if (dto.getRoomId() != null) {
+            room = roomRepository.findById(dto.getRoomId())
+                    .orElseThrow(() -> new RuntimeException("Room not found"));
+            if (room.isFull()) {
+                throw new RuntimeException("Room " + room.getRoomNumber() + " is full");
+            }
+            room.setOccupiedCount(room.getOccupiedCount() + 1);
+            roomRepository.save(room);
+        }
+
+        User student = User.builder()
+                .name(dto.getName())
+                .username(dto.getUsername())
+                .password(passwordEncoder.encode(password))
+                .role(User.Role.STUDENT)
+                .status(User.UserStatus.VERIFIED)
+                .phone(dto.getPhone())
+                .address(dto.getAddress())
+                .emergencyContact(dto.getEmergencyContact())
+                .age(dto.getAge())
+                .rentStatus(dto.getRentStatus() != null ? dto.getRentStatus() : "Pending")
+                .joinedDate(dto.getJoinedDate() != null ? dto.getJoinedDate() : LocalDate.now())
+                .room(room)
+                .build();
+
+        User saved = userRepository.save(student);
+        log.info("Student created successfully: {}", saved.getUsername());
+        return authService.mapToUserDto(saved);
+    }
+
+    @Transactional
+    public UserDto updateStudent(Long id, UserDto dto) {
+        User student = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        student.setName(dto.getName());
+        student.setPhone(dto.getPhone());
+        student.setAge(dto.getAge());
+        student.setAddress(dto.getAddress());
+        student.setEmergencyContact(dto.getEmergencyContact());
+        if (dto.getRentStatus() != null) {
+            student.setRentStatus(dto.getRentStatus());
+        }
+
+        // Room reassignment logic
+        Long currentRoomId = student.getRoom() != null ? student.getRoom().getId() : null;
+        Long targetRoomId = dto.getRoomId();
+
+        if (currentRoomId != targetRoomId) {
+            // Vacate old room
+            if (student.getRoom() != null) {
+                Room oldRoom = student.getRoom();
+                oldRoom.setOccupiedCount(Math.max(0, oldRoom.getOccupiedCount() - 1));
+                roomRepository.save(oldRoom);
+            }
+
+            // Allocate new room
+            if (targetRoomId != null) {
+                Room newRoom = roomRepository.findById(targetRoomId)
+                        .orElseThrow(() -> new RuntimeException("Room not found"));
+                if (newRoom.isFull()) {
+                    throw new RuntimeException("Room " + newRoom.getRoomNumber() + " is full");
+                }
+                newRoom.setOccupiedCount(newRoom.getOccupiedCount() + 1);
+                roomRepository.save(newRoom);
+                student.setRoom(newRoom);
+            } else {
+                student.setRoom(null);
+            }
+        }
+
+        User saved = userRepository.save(student);
+        log.info("Student updated successfully: {}", saved.getUsername());
+        return authService.mapToUserDto(saved);
+    }
+
+    @Transactional
+    public void deleteStudent(Long id) {
+        User student = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        if (student.getRoom() != null) {
+            Room room = student.getRoom();
+            room.setOccupiedCount(Math.max(0, room.getOccupiedCount() - 1));
+            roomRepository.save(room);
+        }
+
+        // Delete complaints first to avoid FK constraint violation
+        complaintRepository.deleteByStudentId(id);
+
+        userRepository.delete(student);
+        log.info("Student deleted successfully: {}", student.getUsername());
+    }
+
+    @Transactional
     public UserDto verifyAndAssignRoom(Long studentId, Long roomId) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -75,24 +183,13 @@ public class AdminService {
             throw new RuntimeException("Room " + room.getRoomNumber() + " is full");
         }
 
-        // Update student
         student.setStatus(User.UserStatus.VERIFIED);
         student.setRoom(room);
 
-        // Update room occupancy
         room.setOccupiedCount(room.getOccupiedCount() + 1);
         roomRepository.save(room);
 
         User saved = userRepository.save(student);
-        log.info("Student {} verified and assigned to room {}", student.getEmail(), room.getRoomNumber());
-
-        // Send notification email
-        try {
-            emailService.sendVerificationEmail(student.getEmail(), student.getName(), room.getRoomNumber());
-        } catch (Exception e) {
-            log.warn("Failed to send verification email: {}", e.getMessage());
-        }
-
         return authService.mapToUserDto(saved);
     }
 
@@ -106,33 +203,68 @@ public class AdminService {
 
     @Transactional
     public UserDto reassignRoom(Long studentId, Long newRoomId) {
-        User student = userRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        // Free old room
-        if (student.getRoom() != null) {
-            Room oldRoom = student.getRoom();
-            oldRoom.setOccupiedCount(Math.max(0, oldRoom.getOccupiedCount() - 1));
-            roomRepository.save(oldRoom);
-        }
-
-        Room newRoom = roomRepository.findById(newRoomId)
-                .orElseThrow(() -> new RuntimeException("Room not found"));
-
-        if (newRoom.isFull()) {
-            throw new RuntimeException("Room " + newRoom.getRoomNumber() + " is full");
-        }
-
-        newRoom.setOccupiedCount(newRoom.getOccupiedCount() + 1);
-        roomRepository.save(newRoom);
-
-        student.setRoom(newRoom);
-        return authService.mapToUserDto(userRepository.save(student));
+        return updateStudent(studentId, UserDto.builder().roomId(newRoomId).build());
     }
 
     public UserDto getStudentById(Long studentId) {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
         return authService.mapToUserDto(student);
+    }
+
+    // Weekly Mess Menu Management
+    @Transactional
+    public MessMenu addMenu(MessMenuRequest request) {
+        LocalDate weekStart = request.getWeekStartDate();
+        // Remove existing if duplicate key
+        List<MessMenu> existing = messMenuRepository.findByWeekStartDate(weekStart);
+        existing.stream()
+                .filter(m -> m.getDayOfWeek() == request.getDayOfWeek() && m.getMealType() == request.getMealType())
+                .findFirst()
+                .ifPresent(messMenuRepository::delete);
+
+        MessMenu menu = MessMenu.builder()
+                .weekStartDate(weekStart)
+                .dayOfWeek(request.getDayOfWeek())
+                .mealType(request.getMealType())
+                .menuItems(request.getMenuItems())
+                .build();
+        return messMenuRepository.save(menu);
+    }
+
+    @Transactional
+    public MessMenu updateMenu(Long id, String menuItems) {
+        MessMenu menu = messMenuRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Menu item not found"));
+        menu.setMenuItems(menuItems);
+        return messMenuRepository.save(menu);
+    }
+
+    @Transactional
+    public void deleteMenu(Long id) {
+        messMenuRepository.deleteById(id);
+    }
+
+    // Electricity Schedule Management
+    @Transactional
+    public ElectricitySchedule addSchedule(ElectricitySchedule schedule) {
+        return electricityScheduleRepository.save(schedule);
+    }
+
+    @Transactional
+    public ElectricitySchedule updateSchedule(Long id, ElectricitySchedule request) {
+        ElectricitySchedule schedule = electricityScheduleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Electricity schedule not found"));
+        schedule.setTitle(request.getTitle());
+        schedule.setDescription(request.getDescription());
+        schedule.setStartTime(request.getStartTime());
+        schedule.setEndTime(request.getEndTime());
+        schedule.setAffectedAreas(request.getAffectedAreas());
+        return electricityScheduleRepository.save(schedule);
+    }
+
+    @Transactional
+    public void deleteSchedule(Long id) {
+        electricityScheduleRepository.deleteById(id);
     }
 }

@@ -24,10 +24,10 @@ public class DataSeeder implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Seed Admin user
-        if (!userRepository.existsByEmail("admin@pgmanagement.com")) {
+        if (!userRepository.existsByUsername("admin")) {
             User admin = User.builder()
                     .name("Admin")
-                    .email("admin@pgmanagement.com")
+                    .username("admin")
                     .password(passwordEncoder.encode("Admin@123"))
                     .role(User.Role.ADMIN)
                     .status(User.UserStatus.VERIFIED)
@@ -35,7 +35,7 @@ public class DataSeeder implements CommandLineRunner {
                     .joinedDate(LocalDate.now())
                     .build();
             userRepository.save(admin);
-            log.info("Default admin user created: admin@pgmanagement.com / Admin@123");
+            log.info("Default admin user created: admin / Admin@123");
         }
 
         // Seed some rooms if none exist

@@ -5,7 +5,7 @@ import { Utensils, Edit3, ChevronLeft, ChevronRight, Save } from 'lucide-react';
 import { format, startOfWeek, addDays, subDays } from 'date-fns';
 import toast from 'react-hot-toast';
 
-const DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', SUNDAY => 'SUNDAY'];
+const DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 const MEALS = ['BREAKFAST', 'LUNCH', 'DINNER'];
 const DAY_OPTIONS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
 

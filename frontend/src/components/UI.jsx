@@ -2,9 +2,11 @@ export function StatusBadge({ status, type = 'complaint' }) {
   const getConfig = () => {
     if (type === 'complaint') {
       switch (status) {
-        case 'OPEN': return 'badge-info';
+        case 'SUBMITTED': return 'badge-info';
+        case 'IN_REVIEW': return 'badge-purple';
         case 'IN_PROGRESS': return 'badge-warning';
         case 'RESOLVED': return 'badge-success';
+        case 'CLOSED': return 'badge-danger';
         default: return 'badge-gray';
       }
     }

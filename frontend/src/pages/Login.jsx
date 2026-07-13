@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Home, Lock, Mail, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Home, User, Lock, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ username: '', password: '' });
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login, isAdmin } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -17,7 +17,7 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const data = await login(form.email, form.password);
+      const data = await login(form.username, form.password);
       toast.success(`Welcome back, ${data.name}!`);
       if (data.role === 'ADMIN') {
         navigate('/admin/dashboard');
@@ -25,7 +25,7 @@ export default function Login() {
         navigate('/student/dashboard');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please try again.';
+      const msg = err.response?.data?.message || 'Login failed. Please check your credentials.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -53,8 +53,8 @@ export default function Login() {
         <div className="glass-card p-8">
           {/* Demo credentials */}
           <div className="bg-primary-500/10 border border-primary-500/30 rounded-xl p-3 mb-6 text-sm">
-            <p className="text-primary-400 font-semibold mb-1">Demo Credentials</p>
-            <p className="text-gray-400">Admin: <span className="text-gray-300">admin@pgmanagement.com</span> / <span className="text-gray-300">Admin@123</span></p>
+            <p className="text-primary-400 font-semibold mb-1">Default Admin Credentials</p>
+            <p className="text-gray-400">Username: <span className="text-gray-300 font-mono">admin</span> &nbsp;/&nbsp; Password: <span className="text-gray-300 font-mono">Admin@123</span></p>
           </div>
 
           {error && (
@@ -66,15 +66,15 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="form-label">Email Address</label>
+              <label className="form-label">User ID / Username</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                 <input
-                  type="email"
-                  placeholder="you@example.com"
+                  type="text"
+                  placeholder="Enter your user ID"
                   className="input-field pl-10"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  value={form.username}
+                  onChange={(e) => setForm({ ...form, username: e.target.value })}
                   required
                 />
               </div>
@@ -111,11 +111,8 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-gray-400 text-sm mt-6">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">
-              Register here
-            </Link>
+          <p className="text-center text-gray-500 text-xs mt-6">
+            Contact your hostel admin to get your login credentials.
           </p>
         </div>
       </div>

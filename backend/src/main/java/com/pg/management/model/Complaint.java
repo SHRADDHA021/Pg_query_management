@@ -47,6 +47,6 @@ public class Complaint {
     }
 
     public enum ComplaintStatus {
-        OPEN, IN_PROGRESS, RESOLVED
+        SUBMITTED, IN_REVIEW, IN_PROGRESS, RESOLVED, CLOSED
     }
 }
