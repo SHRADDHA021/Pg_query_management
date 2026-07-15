@@ -1,121 +1,105 @@
 import { useAuth } from '../../context/AuthContext';
 import { PageHeader } from '../../components/UI';
-import { User, Phone, MapPin, Calendar, ShieldCheck, Home, CreditCard, Hash } from 'lucide-react';
-import { format } from 'date-fns';
+import { User, Phone, MapPin, ShieldCheck, Home, CreditCard, Hash } from 'lucide-react';
+
+const Field = ({ icon: Icon, label, children }) => (
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+    <Icon style={{ width: '1.25rem', height: '1.25rem', color: '#f59e0b', marginTop: '0.125rem', flexShrink: 0 }} />
+    <div>
+      <span style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'block', marginBottom: '0.125rem' }}>{label}</span>
+      <span style={{ fontWeight: 600, color: '#fff' }}>{children}</span>
+    </div>
+  </div>
+);
 
 export default function StudentProfile() {
   const { user } = useAuth();
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <PageHeader
         title="My Profile"
         subtitle="Your registered account details and room information."
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Card: Avatar and status */}
-        <div className="glass-card p-6 flex flex-col items-center justify-center text-center border border-white/5">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center text-3xl font-extrabold text-white mb-4 shadow-lg shadow-primary-500/20">
-            {user?.name?.charAt(0)?.toUpperCase()}
-          </div>
-          <h2 className="text-xl font-bold text-white mb-1">{user?.name}</h2>
-          <p className="text-primary-400 text-sm font-mono font-medium mb-4">@{user?.username}</p>
-
-          <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3.5 py-1.5 rounded-full text-emerald-400 text-sm font-semibold">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Verified Resident</span>
-          </div>
-
-          {user?.rentStatus && (
-            <div className={`mt-3 flex items-center gap-2 px-3.5 py-1.5 rounded-full text-sm font-semibold ${
-              user.rentStatus === 'Paid'
-                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                : 'bg-amber-500/10 border border-amber-500/20 text-amber-400'
-            }`}>
-              <CreditCard className="w-4 h-4" />
-              <span>Rent: {user.rentStatus}</span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }} className="lg:grid-cols-3-custom">
+        <div style={{ display: 'grid', gap: '2rem', gridTemplateColumns: '1fr 2fr' }}>
+          {/* Left Card: Avatar */}
+          <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+            <div style={{
+              width: '6rem', height: '6rem', borderRadius: '9999px',
+              background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '2rem', fontWeight: 800, color: '#000', marginBottom: '1rem',
+              boxShadow: '0 8px 25px rgba(245,158,11,0.25)'
+            }}>
+              {user?.name?.charAt(0)?.toUpperCase()}
             </div>
-          )}
-        </div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#fff', margin: '0 0 0.25rem' }}>{user?.name}</h2>
+            <p style={{ color: '#f59e0b', fontSize: '0.875rem', fontFamily: 'monospace', fontWeight: 500, marginBottom: '1rem' }}>@{user?.username}</p>
 
-        {/* Right Card: Fields */}
-        <div className="glass-card p-8 lg:col-span-2 border border-white/5 space-y-6">
-          <h3 className="text-lg font-bold text-white border-b border-white/5 pb-3">Personal & PG Details</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-start gap-3">
-              <Hash className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div>
-                <span className="text-xs text-gray-400 block mb-0.5">Login ID / Username</span>
-                <span className="font-mono font-semibold text-primary-300">{user?.username}</span>
-              </div>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              background: 'rgba(5,150,105,0.10)', border: '1px solid rgba(5,150,105,0.25)',
+              padding: '0.375rem 0.875rem', borderRadius: '9999px',
+              color: '#34d399', fontSize: '0.875rem', fontWeight: 600
+            }}>
+              <ShieldCheck style={{ width: '1rem', height: '1rem' }} />
+              <span>Verified Resident</span>
             </div>
 
-            <div className="flex items-start gap-3">
-              <User className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div>
-                <span className="text-xs text-gray-400 block mb-0.5">Role</span>
-                <span className="font-semibold text-white">{user?.role}</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Home className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div>
-                <span className="text-xs text-gray-400 block mb-0.5">Assigned Room</span>
-                <span className="font-semibold text-white">
-                  {user?.roomNumber ? `Room ${user.roomNumber}` : 'Not Assigned'}
-                </span>
-                {user?.floor && (
-                  <span className="text-gray-500 text-xs block">Floor: {user.floor} • {user.roomType}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Phone className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div>
-                <span className="text-xs text-gray-400 block mb-0.5">Phone Number</span>
-                <span className="font-semibold text-white">{user?.phone || 'N/A'}</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Phone className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div>
-                <span className="text-xs text-gray-400 block mb-0.5">Emergency Contact</span>
-                <span className="font-semibold text-white">{user?.emergencyContact || 'N/A'}</span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <Calendar className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div>
-                <span className="text-xs text-gray-400 block mb-0.5">Joined Date</span>
-                <span className="font-semibold text-white">
-                  {user?.joinedDate ? format(new Date(user.joinedDate), 'dd MMMM yyyy') : 'N/A'}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <User className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div>
-                <span className="text-xs text-gray-400 block mb-0.5">Age</span>
-                <span className="font-semibold text-white">{user?.age ? `${user.age} years` : 'N/A'}</span>
-              </div>
-            </div>
-
-            {user?.address && (
-              <div className="flex items-start gap-3 md:col-span-2">
-                <MapPin className="w-5 h-5 text-gray-500 mt-0.5" />
-                <div>
-                  <span className="text-xs text-gray-400 block mb-0.5">Permanent Address</span>
-                  <span className="font-semibold text-white">{user.address}</span>
-                </div>
+            {user?.rentStatus && (
+              <div style={{
+                marginTop: '0.75rem',
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                background: user.rentStatus === 'Paid' ? 'rgba(5,150,105,0.10)' : 'rgba(245,158,11,0.10)',
+                border: `1px solid ${user.rentStatus === 'Paid' ? 'rgba(5,150,105,0.25)' : 'rgba(245,158,11,0.25)'}`,
+                padding: '0.375rem 0.875rem', borderRadius: '9999px',
+                color: user.rentStatus === 'Paid' ? '#34d399' : '#fbbf24',
+                fontSize: '0.875rem', fontWeight: 600
+              }}>
+                <CreditCard style={{ width: '1rem', height: '1rem' }} />
+                <span>Rent: {user.rentStatus}</span>
               </div>
             )}
+          </div>
+
+          {/* Right Card: Fields */}
+          <div className="glass-card" style={{ padding: '2rem' }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fff', borderBottom: '1px solid rgba(161,120,5,0.20)', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+              Personal & PG Details
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              <Field icon={Hash} label="Login ID / Username">
+                <span style={{ fontFamily: 'monospace', color: '#fbbf24' }}>{user?.username}</span>
+              </Field>
+
+              <Field icon={User} label="Role">
+                {user?.role}
+              </Field>
+
+              <Field icon={Home} label="Assigned Room">
+                {user?.roomNumber ? `Room ${user.roomNumber}` : 'Not Assigned'}
+                {user?.floor && (
+                  <span style={{ color: '#6b7280', fontSize: '0.75rem', display: 'block' }}>Floor: {user.floor} • {user.roomType}</span>
+                )}
+              </Field>
+
+              <Field icon={Phone} label="Phone Number">
+                {user?.phone || 'N/A'}
+              </Field>
+
+              {user?.address && (
+                <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                  <MapPin style={{ width: '1.25rem', height: '1.25rem', color: '#f59e0b', marginTop: '0.125rem', flexShrink: 0 }} />
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: '#9ca3af', display: 'block', marginBottom: '0.125rem' }}>Permanent Address</span>
+                    <span style={{ fontWeight: 600, color: '#fff' }}>{user.address}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

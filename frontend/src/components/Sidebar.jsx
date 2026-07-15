@@ -36,27 +36,44 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className={`fixed left-0 top-0 h-screen z-40 flex flex-col transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
+    <aside
+      style={{ width: collapsed ? 64 : 256 }}
+      className="fixed left-0 top-0 h-screen z-40 flex flex-col transition-all duration-300"
+    >
       {/* Background */}
-      <div className="absolute inset-0 bg-dark-900/95 backdrop-blur-xl border-r border-white/5" />
-      
+      <div
+        className="absolute inset-0 backdrop-blur-xl"
+        style={{ background: 'rgba(10,10,10,0.97)', borderRight: '1px solid rgba(161,120,5,0.15)' }}
+      />
+
       <div className="relative flex flex-col h-full">
         {/* Logo */}
-        <div className="flex items-center justify-between p-4 border-b border-white/5">
+        <div
+          className="flex items-center justify-between p-4"
+          style={{ borderBottom: '1px solid rgba(161,120,5,0.12)' }}
+        >
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-violet-600 rounded-lg flex items-center justify-center">
-                <Home className="w-4 h-4 text-white" />
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}
+              >
+                <Home className="w-4 h-4" style={{ color: '#000' }} />
               </div>
               <div>
-                <p className="text-white font-bold text-sm">PG Manager</p>
-                <p className="text-gray-500 text-xs">{isAdmin() ? 'Admin Panel' : 'Student Portal'}</p>
+                <p className="font-bold text-sm" style={{ color: '#fff' }}>PG Manager</p>
+                <p className="text-xs" style={{ color: '#6b7280' }}>
+                  {isAdmin() ? 'Admin Panel' : 'Student Portal'}
+                </p>
               </div>
             </div>
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: '#9ca3af' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#9ca3af'; }}
           >
             {collapsed ? <Menu className="w-4 h-4" /> : <X className="w-4 h-4" />}
           </button>
@@ -64,16 +81,19 @@ export default function Sidebar() {
 
         {/* User Info */}
         {!collapsed && (
-          <div className="px-4 py-3 border-b border-white/5">
+          <div className="px-4 py-3" style={{ borderBottom: '1px solid rgba(161,120,5,0.12)' }}>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-semibold text-sm">
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}
+              >
+                <span className="font-semibold text-sm" style={{ color: '#000' }}>
                   {user?.name?.charAt(0)?.toUpperCase()}
                 </span>
               </div>
               <div className="overflow-hidden">
-                <p className="text-white text-sm font-medium truncate">{user?.name}</p>
-                <p className="text-gray-500 text-xs truncate font-mono">@{user?.username}</p>
+                <p className="text-sm font-medium truncate" style={{ color: '#fff' }}>{user?.name}</p>
+                <p className="text-xs truncate font-mono" style={{ color: '#6b7280' }}>@{user?.username}</p>
               </div>
             </div>
           </div>
@@ -98,11 +118,14 @@ export default function Sidebar() {
         </nav>
 
         {/* Logout */}
-        <div className="p-3 border-t border-white/5">
+        <div className="p-3" style={{ borderTop: '1px solid rgba(161,120,5,0.12)' }}>
           <button
             onClick={handleLogout}
-            className={`sidebar-link w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 ${collapsed ? 'justify-center px-2' : ''}`}
+            className={`sidebar-link w-full ${collapsed ? 'justify-center px-2' : ''}`}
             title={collapsed ? 'Logout' : ''}
+            style={{ color: '#f87171' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.08)'; e.currentTarget.style.color = '#fca5a5'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#f87171'; }}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
             {!collapsed && <span>Logout</span>}

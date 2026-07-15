@@ -104,8 +104,13 @@ export default function AdminRooms() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {rooms.map((room) => (
-          <div key={room.id} className="glass-card p-6 flex flex-col justify-between border border-white/5 hover:border-primary-500/20 transition-all duration-300">
+        {[...rooms]
+          .sort((a, b) => String(a.roomNumber).localeCompare(String(b.roomNumber), undefined, { numeric: true }))
+          .map((room) => (
+          <div key={room.id} className="glass-card p-6 flex flex-col justify-between" style={{ transition: 'border-color 0.3s' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(245,158,11,0.35)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(161,120,5,0.20)'}
+          >
             <div>
               <div className="flex justify-between items-start mb-4 pb-2 border-b border-white/5">
                 <div>
@@ -128,7 +133,7 @@ export default function AdminRooms() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Monthly Rent</span>
-                  <span className="font-bold text-primary-400">₹{room.monthlyRent}</span>
+                  <span style={{ fontWeight: 700, color: '#f59e0b' }}>₹{room.monthlyRent}</span>
                 </div>
                 {room.description && (
                   <p className="text-gray-500 text-xs italic line-clamp-2 mt-2 pt-2 border-t border-white/5">

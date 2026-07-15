@@ -33,46 +33,53 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-80 h-80 bg-primary-600/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-violet-600/20 rounded-full blur-3xl" />
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', position: 'relative' }}>
+      {/* Background glow blobs */}
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        <div style={{ position: 'absolute', top: '-10rem', left: '-10rem', width: '28rem', height: '28rem', background: 'rgba(245,158,11,0.12)', borderRadius: '9999px', filter: 'blur(80px)' }} />
+        <div style={{ position: 'absolute', bottom: '-10rem', right: '-10rem', width: '28rem', height: '28rem', background: 'rgba(180,83,9,0.08)', borderRadius: '9999px', filter: 'blur(80px)' }} />
       </div>
 
-      <div className="relative w-full max-w-md animate-fade-in">
+      <div style={{ position: 'relative', width: '100%', maxWidth: '420px', animation: 'fadeIn 0.5s ease-in-out' }}>
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-violet-600 rounded-2xl mb-4 shadow-lg shadow-primary-500/30">
-            <Home className="w-8 h-8 text-white" />
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            width: '4rem', height: '4rem',
+            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+            borderRadius: '1rem', marginBottom: '1rem',
+            boxShadow: '0 8px 25px rgba(245,158,11,0.30)'
+          }}>
+            <Home style={{ width: '2rem', height: '2rem', color: '#000' }} />
           </div>
-          <h1 className="text-3xl font-bold text-white">Welcome Back</h1>
-          <p className="text-gray-400 mt-2">Sign in to PG Management System</p>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', margin: 0 }}>Welcome Back</h1>
+          <p style={{ color: '#6b7280', marginTop: '0.5rem', fontSize: '0.9rem' }}>Sign in to PG Management System</p>
         </div>
 
-        <div className="glass-card p-8">
-          {/* Demo credentials */}
-          <div className="bg-primary-500/10 border border-primary-500/30 rounded-xl p-3 mb-6 text-sm">
-            <p className="text-primary-400 font-semibold mb-1">Default Admin Credentials</p>
-            <p className="text-gray-400">Username: <span className="text-gray-300 font-mono">admin</span> &nbsp;/&nbsp; Password: <span className="text-gray-300 font-mono">Admin@123</span></p>
-          </div>
-
+        {/* Card */}
+        <div className="glass-card" style={{ padding: '2rem' }}>
           {error && (
-            <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-5 text-red-400 text-sm">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              background: 'rgba(220,38,38,0.10)', border: '1px solid rgba(220,38,38,0.30)',
+              borderRadius: '0.75rem', padding: '0.75rem', marginBottom: '1.25rem',
+              color: '#f87171', fontSize: '0.875rem'
+            }}>
+              <AlertCircle style={{ width: '1rem', height: '1rem', flexShrink: 0 }} />
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
               <label className="form-label">User ID / Username</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <div style={{ position: 'relative' }}>
+                <User style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#6b7280' }} />
                 <input
                   type="text"
                   placeholder="Enter your user ID"
-                  className="input-field pl-10"
+                  className="input-field"
+                  style={{ paddingLeft: '2.5rem' }}
                   value={form.username}
                   onChange={(e) => setForm({ ...form, username: e.target.value })}
                   required
@@ -82,12 +89,13 @@ export default function Login() {
 
             <div>
               <label className="form-label">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <div style={{ position: 'relative' }}>
+                <Lock style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#6b7280' }} />
                 <input
                   type={showPass ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="input-field pl-10 pr-10"
+                  className="input-field"
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   required
@@ -95,23 +103,29 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}
                 >
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPass ? <EyeOff style={{ width: '1rem', height: '1rem' }} /> : <Eye style={{ width: '1rem', height: '1rem' }} />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="btn-primary w-full">
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary"
+              style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}
+            >
               {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="spinner w-4 h-4" /> Signing in...
+                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                  <span className="spinner" style={{ width: '1rem', height: '1rem' }} />
+                  Signing in...
                 </span>
               ) : 'Sign In'}
             </button>
           </form>
 
-          <p className="text-center text-gray-500 text-xs mt-6">
+          <p style={{ textAlign: 'center', color: '#4b5563', fontSize: '0.75rem', marginTop: '1.5rem' }}>
             Contact your hostel admin to get your login credentials.
           </p>
         </div>

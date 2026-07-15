@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PageHeader, LoadingSpinner, EmptyState, StatusBadge, Modal } from '../../components/UI';
+import { PageHeader, LoadingSpinner, EmptyState, Modal } from '../../components/UI';
 import { adminService, roomService } from '../../services';
 import { Users, Plus, Edit2, Trash2, Home, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -58,6 +58,10 @@ export default function AdminStudents() {
       toast.error('Name, Username and Password are required');
       return;
     }
+    if (form.phone && !/^\d{10}$/.test(form.phone)) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
     setSaving(true);
     try {
       await adminService.createStudent({
@@ -100,6 +104,10 @@ export default function AdminStudents() {
 
   const handleEdit = async (e) => {
     e.preventDefault();
+    if (form.phone && !/^\d{10}$/.test(form.phone)) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
     setSaving(true);
     try {
       await adminService.updateStudent(selectedStudent.id, {
@@ -161,7 +169,10 @@ export default function AdminStudents() {
     }
   };
 
-  const availableRooms = rooms.filter(r => r.occupancyStatus !== 'FULL');
+  const availableRooms = rooms
+    .filter(r => r.occupancyStatus !== 'FULL')
+    .sort((a, b) => String(a.roomNumber).localeCompare(String(b.roomNumber), undefined, { numeric: true }));
+  const sortedRooms = [...rooms].sort((a, b) => String(a.roomNumber).localeCompare(String(b.roomNumber), undefined, { numeric: true }));
 
   if (loading) return <LoadingSpinner />;
 
@@ -198,7 +209,6 @@ export default function AdminStudents() {
                   <th>Phone</th>
                   <th>Room</th>
                   <th>Rent Status</th>
-                  <th>Status</th>
                   <th>Joined</th>
                   <th>Actions</th>
                 </tr>
@@ -208,7 +218,9 @@ export default function AdminStudents() {
                   <tr key={student.id}>
                     <td>
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-violet-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                        <div
+                          style={{ width: '2rem', height: '2rem', borderRadius: '9999px', background: 'linear-gradient(135deg,#f59e0b,#d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: 700, color: '#000', flexShrink: 0 }}
+                        >
                           {student.name?.charAt(0)?.toUpperCase()}
                         </div>
                         <div>
@@ -218,12 +230,12 @@ export default function AdminStudents() {
                       </div>
                     </td>
                     <td>
-                      <span className="font-mono text-primary-300 text-sm bg-primary-500/10 px-2 py-0.5 rounded">
+                      <span style={{ fontFamily: 'monospace', color: '#fbbf24', fontSize: '0.875rem', background: 'rgba(245,158,11,0.10)', padding: '0.125rem 0.5rem', borderRadius: '0.375rem', border: '1px solid rgba(245,158,11,0.20)' }}>
                         {student.username}
                       </span>
                     </td>
                     <td className="text-gray-300 text-sm">{student.phone || '—'}</td>
-                    <td className="font-semibold text-primary-400">
+                    <td style={{ fontWeight: 600, color: '#f59e0b' }}>
                       {student.roomNumber ? `Room ${student.roomNumber}` : <span className="text-gray-500 italic">Unassigned</span>}
                     </td>
                     <td>
@@ -235,24 +247,15 @@ export default function AdminStudents() {
                         {student.rentStatus || 'Pending'}
                       </span>
                     </td>
-                    <td><StatusBadge status={student.status} type="user" /></td>
                     <td className="text-gray-400 text-sm">
                       {student.joinedDate ? format(new Date(student.joinedDate), 'dd MMM yyyy') : 'N/A'}
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
-                        {student.status === 'PENDING' && (
-                          <button
-                            onClick={() => { setSelectedStudent(student); setSelectedRoomId(''); setVerifyModalOpen(true); }}
-                            className="text-emerald-400 hover:text-emerald-300 text-xs font-semibold uppercase tracking-wider transition-colors"
-                          >
-                            Verify
-                          </button>
-                        )}
                         {student.status === 'VERIFIED' && (
                           <button
                             onClick={() => { setSelectedStudent(student); setSelectedRoomId(''); setReassignModalOpen(true); }}
-                            className="text-blue-400 hover:text-blue-300 transition-colors"
+                            className="text-amber-400 hover:text-amber-300 transition-colors"
                             title="Change Room"
                           >
                             <Home className="w-4 h-4" />
@@ -317,8 +320,13 @@ export default function AdminStudents() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label">Phone</label>
-              <input className="input-field" placeholder="Phone number" value={form.phone}
-                onChange={e => setForm({ ...form, phone: e.target.value })} />
+              <input
+                className="input-field"
+                placeholder="10-digit phone number"
+                value={form.phone}
+                maxLength={10}
+                onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
+              />
             </div>
             <div>
               <label className="form-label">Age</label>
@@ -390,8 +398,13 @@ export default function AdminStudents() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label">Phone</label>
-              <input className="input-field" value={form.phone}
-                onChange={e => setForm({ ...form, phone: e.target.value })} />
+              <input
+                className="input-field"
+                value={form.phone}
+                placeholder="10-digit phone number"
+                maxLength={10}
+                onChange={e => setForm({ ...form, phone: e.target.value.replace(/\D/g, '') })}
+              />
             </div>
             <div>
               <label className="form-label">Age</label>
@@ -426,7 +439,7 @@ export default function AdminStudents() {
               <select className="select-field" value={form.roomId}
                 onChange={e => setForm({ ...form, roomId: e.target.value })}>
                 <option value="">Unassigned</option>
-                {rooms.map(r => (
+                {sortedRooms.map(r => (
                   <option key={r.id} value={r.id}>
                     Room {r.roomNumber} ({r.availableSlots}/{r.capacity} free)
                   </option>

@@ -108,11 +108,21 @@ public class AdminService {
         User student = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        student.setName(dto.getName());
-        student.setPhone(dto.getPhone());
-        student.setAge(dto.getAge());
-        student.setAddress(dto.getAddress());
-        student.setEmergencyContact(dto.getEmergencyContact());
+        if (dto.getName() != null) {
+            student.setName(dto.getName());
+        }
+        if (dto.getPhone() != null) {
+            student.setPhone(dto.getPhone());
+        }
+        if (dto.getAge() != null) {
+            student.setAge(dto.getAge());
+        }
+        if (dto.getAddress() != null) {
+            student.setAddress(dto.getAddress());
+        }
+        if (dto.getEmergencyContact() != null) {
+            student.setEmergencyContact(dto.getEmergencyContact());
+        }
         if (dto.getRentStatus() != null) {
             student.setRentStatus(dto.getRentStatus());
         }
@@ -121,7 +131,16 @@ public class AdminService {
         Long currentRoomId = student.getRoom() != null ? student.getRoom().getId() : null;
         Long targetRoomId = dto.getRoomId();
 
-        if (currentRoomId != targetRoomId) {
+        boolean shouldProcessRoomChange = false;
+        if (targetRoomId != null) {
+            shouldProcessRoomChange = (currentRoomId == null || !currentRoomId.equals(targetRoomId));
+        } else {
+            if (dto.getName() != null) {
+                shouldProcessRoomChange = (currentRoomId != null);
+            }
+        }
+
+        if (shouldProcessRoomChange) {
             // Vacate old room
             if (student.getRoom() != null) {
                 Room oldRoom = student.getRoom();
