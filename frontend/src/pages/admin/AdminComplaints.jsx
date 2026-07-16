@@ -86,7 +86,7 @@ export default function AdminComplaints() {
                     <td>
                       <div>
                         <p className="font-semibold text-white">{c.studentName}</p>
-                        <p className="text-gray-500 text-xs">Room {c.roomNumber || 'N/A'} • {c.studentEmail}</p>
+                        <p className="text-gray-500 text-xs">Room {c.roomNumber || 'N/A'} • @{c.studentUsername}</p>
                       </div>
                     </td>
                     <td className="font-medium text-white">{c.category}</td>

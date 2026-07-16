@@ -22,7 +22,8 @@ export default function StudentDashboard() {
         ]);
 
         const todayName = format(new Date(), 'EEEE').toUpperCase();
-        const todayMeals = messRes.data.data.reduce((acc, item) => {
+        const menuItems = messRes?.data?.data ?? [];
+        const todayMeals = menuItems.reduce((acc, item) => {
           if (item.dayOfWeek === todayName) {
             acc[item.mealType] = item.menuItems;
           }
@@ -30,7 +31,7 @@ export default function StudentDashboard() {
         }, {});
 
         setData({
-          recentComplaints: complaintsRes.data.data.slice(0, 3),
+          recentComplaints: complaintsRes?.data?.data?.slice(0, 3) ?? [],
           todayMeals
         });
       } catch (err) {

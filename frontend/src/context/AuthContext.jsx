@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authService } from '../services';
 
 const AuthContext = createContext(null);
@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }) => {
     const response = await authService.login({ username, password });
     const { data } = response.data;
     localStorage.setItem('token', data.token);
+    // Store full user object — now includes phone, address, rentStatus, floor, etc.
     localStorage.setItem('user', JSON.stringify(data));
     setToken(data.token);
     setUser(data);
@@ -35,6 +36,20 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Refresh user profile from server and update localStorage
+  const refreshProfile = useCallback(async () => {
+    try {
+      const response = await authService.getProfile();
+      const fresh = response.data.data;
+      const updated = { ...JSON.parse(localStorage.getItem('user') || '{}'), ...fresh };
+      localStorage.setItem('user', JSON.stringify(updated));
+      setUser(updated);
+      return updated;
+    } catch (err) {
+      console.error('Failed to refresh profile', err);
+    }
+  }, []);
+
   const isAdmin = () => user?.role === 'ADMIN';
   const isStudent = () => user?.role === 'STUDENT';
   const isVerified = () => user?.status === 'VERIFIED';
@@ -42,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={{
       user, token, loading,
-      login, logout,
+      login, logout, refreshProfile,
       isAdmin, isStudent, isVerified
     }}>
       {children}

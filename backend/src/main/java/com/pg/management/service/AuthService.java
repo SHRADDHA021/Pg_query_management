@@ -13,6 +13,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -34,23 +37,72 @@ public class AuthService {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             String token = jwtUtil.generateToken(userDetails);
-
-            return AuthResponse.builder()
-                    .token(token)
-                    .type("Bearer")
-                    .id(user.getId())
-                    .name(user.getName())
-                    .username(user.getUsername())
-                    .role(user.getRole())
-                    .status(user.getStatus())
-                    .roomNumber(user.getRoom() != null ? user.getRoom().getRoomNumber() : null)
-                    .build();
+            return buildAuthResponse(token, user);
 
         } catch (DisabledException e) {
             throw new RuntimeException("Account is pending verification. Please wait for admin approval.");
         } catch (BadCredentialsException e) {
             throw new RuntimeException("Invalid username or password.");
         }
+    }
+
+    @Transactional
+    public AuthResponse register(UserDto dto, String password) {
+        if (userRepository.existsByUsername(dto.getUsername())) {
+            throw new RuntimeException("Username already taken. Please choose a different username.");
+        }
+
+        User student = User.builder()
+                .name(dto.getName())
+                .username(dto.getUsername())
+                .password(passwordEncoder.encode(password))
+                .role(User.Role.STUDENT)
+                .status(User.UserStatus.PENDING)
+                .phone(dto.getPhone())
+                .address(dto.getAddress())
+                .emergencyContact(dto.getEmergencyContact())
+                .age(dto.getAge())
+                .rentStatus("Pending")
+                .joinedDate(LocalDate.now())
+                .build();
+
+        userRepository.save(student);
+
+        // Return response without token – student must wait for admin verification
+        return AuthResponse.builder()
+                .id(student.getId())
+                .name(student.getName())
+                .username(student.getUsername())
+                .role(student.getRole())
+                .status(student.getStatus())
+                .build();
+    }
+
+    public UserDto getProfile(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return mapToUserDto(user);
+    }
+
+    private AuthResponse buildAuthResponse(String token, User user) {
+        return AuthResponse.builder()
+                .token(token)
+                .type("Bearer")
+                .id(user.getId())
+                .name(user.getName())
+                .username(user.getUsername())
+                .role(user.getRole())
+                .status(user.getStatus())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .emergencyContact(user.getEmergencyContact())
+                .age(user.getAge())
+                .rentStatus(user.getRentStatus())
+                .joinedDate(user.getJoinedDate())
+                .roomNumber(user.getRoom() != null ? user.getRoom().getRoomNumber() : null)
+                .floor(user.getRoom() != null ? user.getRoom().getFloor() : null)
+                .roomType(user.getRoom() != null ? user.getRoom().getType().name() : null)
+                .build();
     }
 
     public UserDto mapToUserDto(User user) {

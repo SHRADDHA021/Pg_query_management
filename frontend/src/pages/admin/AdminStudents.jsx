@@ -1,13 +1,26 @@
 import { useEffect, useState } from 'react';
 import { PageHeader, LoadingSpinner, EmptyState, Modal } from '../../components/UI';
 import { adminService, roomService } from '../../services';
-import { Users, Plus, Edit2, Trash2, Home, Eye, EyeOff } from 'lucide-react';
+import { Users, Plus, Edit2, Trash2, Home, Eye, EyeOff, CheckCircle, XCircle, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 
 const emptyForm = {
   name: '', username: '', password: '', phone: '',
   address: '', emergencyContact: '', age: '', rentStatus: 'Pending', roomId: ''
+};
+
+const StatusBadge = ({ status }) => {
+  const styles = {
+    VERIFIED: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    PENDING:  'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    REJECTED: 'bg-red-500/15 text-red-400 border-red-500/30',
+  };
+  return (
+    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${styles[status] || styles.PENDING}`}>
+      {status}
+    </span>
+  );
 };
 
 export default function AdminStudents() {
@@ -142,16 +155,34 @@ export default function AdminStudents() {
   };
 
   // ---- Verify & Assign Room (for PENDING students) ----
+  const openVerifyModal = (student) => {
+    setSelectedStudent(student);
+    setSelectedRoomId('');
+    setVerifyModalOpen(true);
+  };
+
   const handleVerifySubmit = async (e) => {
     e.preventDefault();
-    if (!selectedRoomId) { toast.error('Please select a room'); return; }
+    if (!selectedRoomId) { toast.error('Please select a room to assign'); return; }
     try {
       await adminService.verifyAndAssignRoom(selectedStudent.id, selectedRoomId);
-      toast.success('Student verified & room assigned!');
+      toast.success(`${selectedStudent.name} verified & room assigned!`);
       setVerifyModalOpen(false);
       fetchData();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Verification failed');
+    }
+  };
+
+  // ---- Reject Student ----
+  const handleReject = async (student) => {
+    if (!window.confirm(`Reject registration for ${student.name}? They will NOT be able to log in.`)) return;
+    try {
+      await adminService.rejectStudent(student.id);
+      toast.success(`${student.name}'s registration rejected.`);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Rejection failed');
     }
   };
 
@@ -174,13 +205,113 @@ export default function AdminStudents() {
     .sort((a, b) => String(a.roomNumber).localeCompare(String(b.roomNumber), undefined, { numeric: true }));
   const sortedRooms = [...rooms].sort((a, b) => String(a.roomNumber).localeCompare(String(b.roomNumber), undefined, { numeric: true }));
 
+  const pendingStudents = students.filter(s => s.status === 'PENDING');
+  const verifiedStudents = students.filter(s => s.status === 'VERIFIED');
+  const rejectedStudents = students.filter(s => s.status === 'REJECTED');
+
   if (loading) return <LoadingSpinner />;
+
+  const StudentRow = ({ student }) => (
+    <tr key={student.id}>
+      <td>
+        <div className="flex items-center gap-3">
+          <div style={{
+            width: '2rem', height: '2rem', borderRadius: '9999px',
+            background: student.status === 'PENDING'
+              ? 'linear-gradient(135deg,#f59e0b,#b45309)'
+              : student.status === 'REJECTED'
+              ? 'linear-gradient(135deg,#ef4444,#b91c1c)'
+              : 'linear-gradient(135deg,#f59e0b,#d97706)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.875rem', fontWeight: 700, color: '#000', flexShrink: 0
+          }}>
+            {student.name?.charAt(0)?.toUpperCase()}
+          </div>
+          <div>
+            <p className="font-semibold text-white">{student.name}</p>
+            <p className="text-gray-500 text-xs">{student.phone || 'No phone'}</p>
+          </div>
+        </div>
+      </td>
+      <td>
+        <span style={{ fontFamily: 'monospace', color: '#fbbf24', fontSize: '0.875rem', background: 'rgba(245,158,11,0.10)', padding: '0.125rem 0.5rem', borderRadius: '0.375rem', border: '1px solid rgba(245,158,11,0.20)' }}>
+          {student.username}
+        </span>
+      </td>
+      <td><StatusBadge status={student.status} /></td>
+      <td style={{ fontWeight: 600, color: '#f59e0b' }}>
+        {student.roomNumber ? `Room ${student.roomNumber}` : <span className="text-gray-500 italic">Unassigned</span>}
+      </td>
+      <td>
+        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+          student.rentStatus === 'Paid'
+            ? 'bg-emerald-500/20 text-emerald-400'
+            : 'bg-amber-500/20 text-amber-400'
+        }`}>
+          {student.rentStatus || 'Pending'}
+        </span>
+      </td>
+      <td className="text-gray-400 text-sm">
+        {student.joinedDate ? format(new Date(student.joinedDate), 'dd MMM yyyy') : 'N/A'}
+      </td>
+      <td>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* PENDING students: Verify + Reject */}
+          {student.status === 'PENDING' && (
+            <>
+              <button
+                onClick={() => openVerifyModal(student)}
+                className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all"
+                title="Verify & Assign Room"
+              >
+                <CheckCircle className="w-3.5 h-3.5" /> Verify
+              </button>
+              <button
+                onClick={() => handleReject(student)}
+                className="flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 transition-all"
+                title="Reject Registration"
+              >
+                <XCircle className="w-3.5 h-3.5" /> Reject
+              </button>
+            </>
+          )}
+
+          {/* VERIFIED students: Reassign Room */}
+          {student.status === 'VERIFIED' && (
+            <button
+              onClick={() => { setSelectedStudent(student); setSelectedRoomId(''); setReassignModalOpen(true); }}
+              className="text-amber-400 hover:text-amber-300 transition-colors"
+              title="Change Room"
+            >
+              <Home className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* All students: Edit + Delete */}
+          <button
+            onClick={() => openEditModal(student)}
+            className="text-primary-400 hover:text-primary-300 transition-colors"
+            title="Edit"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleDelete(student)}
+            className="text-red-400 hover:text-red-300 transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
 
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Student Management"
-        subtitle="Add, edit and manage resident records. Create login credentials for students."
+        subtitle="Add, edit and manage resident records. Verify pending registrations and assign rooms."
         action={
           <button onClick={openAddModal} className="btn-primary flex items-center gap-2">
             <Plus className="w-4 h-4" /> Add Student
@@ -188,9 +319,46 @@ export default function AdminStudents() {
         }
       />
 
+      {/* ── PENDING VERIFICATION SECTION ── */}
+      {pendingStudents.length > 0 && (
+        <div className="glass-card overflow-hidden" style={{ border: '1px solid rgba(245,158,11,0.25)' }}>
+          <div className="p-5 border-b border-white/5 flex items-center gap-3" style={{ background: 'rgba(245,158,11,0.05)' }}>
+            <Clock className="w-5 h-5 text-amber-400" />
+            <div>
+              <h2 className="text-base font-bold text-amber-400">Pending Verification ({pendingStudents.length})</h2>
+              <p className="text-xs text-gray-500 mt-0.5">These students have self-registered and are waiting for room assignment</p>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Username</th>
+                  <th>Status</th>
+                  <th>Room</th>
+                  <th>Rent Status</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pendingStudents.map(student => <StudentRow key={student.id} student={student} />)}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── ALL STUDENTS TABLE ── */}
       <div className="glass-card overflow-hidden">
         <div className="p-6 border-b border-white/5 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">All Students ({students.length})</h2>
+          <h2 className="text-xl font-bold text-white">
+            All Students ({students.length})
+            <span className="ml-3 text-sm font-normal text-gray-500">
+              {verifiedStudents.length} verified • {pendingStudents.length} pending • {rejectedStudents.length} rejected
+            </span>
+          </h2>
         </div>
 
         {students.length === 0 ? (
@@ -206,7 +374,7 @@ export default function AdminStudents() {
                 <tr>
                   <th>Student</th>
                   <th>Username / Login ID</th>
-                  <th>Phone</th>
+                  <th>Status</th>
                   <th>Room</th>
                   <th>Rent Status</th>
                   <th>Joined</th>
@@ -214,71 +382,7 @@ export default function AdminStudents() {
                 </tr>
               </thead>
               <tbody>
-                {students.map((student) => (
-                  <tr key={student.id}>
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <div
-                          style={{ width: '2rem', height: '2rem', borderRadius: '9999px', background: 'linear-gradient(135deg,#f59e0b,#d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.875rem', fontWeight: 700, color: '#000', flexShrink: 0 }}
-                        >
-                          {student.name?.charAt(0)?.toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-white">{student.name}</p>
-                          <p className="text-gray-500 text-xs">{student.phone || 'No phone'}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span style={{ fontFamily: 'monospace', color: '#fbbf24', fontSize: '0.875rem', background: 'rgba(245,158,11,0.10)', padding: '0.125rem 0.5rem', borderRadius: '0.375rem', border: '1px solid rgba(245,158,11,0.20)' }}>
-                        {student.username}
-                      </span>
-                    </td>
-                    <td className="text-gray-300 text-sm">{student.phone || '—'}</td>
-                    <td style={{ fontWeight: 600, color: '#f59e0b' }}>
-                      {student.roomNumber ? `Room ${student.roomNumber}` : <span className="text-gray-500 italic">Unassigned</span>}
-                    </td>
-                    <td>
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                        student.rentStatus === 'Paid'
-                          ? 'bg-emerald-500/20 text-emerald-400'
-                          : 'bg-amber-500/20 text-amber-400'
-                      }`}>
-                        {student.rentStatus || 'Pending'}
-                      </span>
-                    </td>
-                    <td className="text-gray-400 text-sm">
-                      {student.joinedDate ? format(new Date(student.joinedDate), 'dd MMM yyyy') : 'N/A'}
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        {student.status === 'VERIFIED' && (
-                          <button
-                            onClick={() => { setSelectedStudent(student); setSelectedRoomId(''); setReassignModalOpen(true); }}
-                            className="text-amber-400 hover:text-amber-300 transition-colors"
-                            title="Change Room"
-                          >
-                            <Home className="w-4 h-4" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => openEditModal(student)}
-                          className="text-primary-400 hover:text-primary-300 transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(student)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {students.map((student) => <StudentRow key={student.id} student={student} />)}
               </tbody>
             </table>
           </div>
@@ -363,7 +467,7 @@ export default function AdminStudents() {
                 <option value="">No Room</option>
                 {availableRooms.map(r => (
                   <option key={r.id} value={r.id}>
-                    Room {r.roomNumber} ({r.type} • {r.availableSlots}/{r.capacity} free)
+                    Room {r.roomNumber} ({r.type} • {r.occupiedCount}/{r.capacity} filled)
                   </option>
                 ))}
               </select>
@@ -441,7 +545,7 @@ export default function AdminStudents() {
                 <option value="">Unassigned</option>
                 {sortedRooms.map(r => (
                   <option key={r.id} value={r.id}>
-                    Room {r.roomNumber} ({r.availableSlots}/{r.capacity} free)
+                    Room {r.roomNumber} ({r.occupiedCount}/{r.capacity} filled)
                   </option>
                 ))}
               </select>
@@ -458,27 +562,35 @@ export default function AdminStudents() {
       </Modal>
 
       {/* ── Verify & Assign Room Modal ── */}
-      <Modal isOpen={verifyModalOpen} onClose={() => setVerifyModalOpen(false)} title={`Verify ${selectedStudent?.name}`}>
+      <Modal isOpen={verifyModalOpen} onClose={() => setVerifyModalOpen(false)} title={`Approve & Assign Room — ${selectedStudent?.name}`}>
         <form onSubmit={handleVerifySubmit} className="space-y-4">
-          <div className="bg-white/5 border border-white/5 rounded-xl p-4 text-sm space-y-2">
+          <div className="bg-white/5 border border-white/5 rounded-xl p-4 text-sm space-y-1">
             <p className="text-gray-400"><strong className="text-gray-300">Name:</strong> {selectedStudent?.name}</p>
             <p className="text-gray-400"><strong className="text-gray-300">Username:</strong> {selectedStudent?.username}</p>
+            <p className="text-gray-400"><strong className="text-gray-300">Phone:</strong> {selectedStudent?.phone || 'Not provided'}</p>
           </div>
           <div>
-            <label className="form-label">Allocate Room</label>
+            <label className="form-label">Allocate Room *</label>
             <select className="select-field" value={selectedRoomId}
               onChange={e => setSelectedRoomId(e.target.value)} required>
               <option value="">Select a Room</option>
               {availableRooms.map(room => (
                 <option key={room.id} value={room.id}>
-                  Room {room.roomNumber} ({room.type} • ₹{room.monthlyRent} • {room.availableSlots}/{room.capacity})
+                  Room {room.roomNumber} ({room.type} • ₹{room.monthlyRent}/mo • {room.occupiedCount}/{room.capacity} filled)
                 </option>
               ))}
             </select>
           </div>
+          {availableRooms.length === 0 && (
+            <p className="text-amber-400 text-sm bg-amber-500/10 rounded-xl p-3 border border-amber-500/20">
+              ⚠️ No rooms available. Please add rooms first from Room Management.
+            </p>
+          )}
           <div className="flex justify-end gap-3 pt-4">
             <button type="button" onClick={() => setVerifyModalOpen(false)} className="btn-secondary">Cancel</button>
-            <button type="submit" className="btn-success">Approve & Assign Room</button>
+            <button type="submit" className="btn-success text-white flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" /> Approve & Assign Room
+            </button>
           </div>
         </form>
       </Modal>
@@ -496,7 +608,7 @@ export default function AdminStudents() {
               <option value="">Select a Room</option>
               {availableRooms.map(room => (
                 <option key={room.id} value={room.id}>
-                  Room {room.roomNumber} ({room.type} • {room.availableSlots}/{room.capacity} free)
+                  Room {room.roomNumber} ({room.type} • {room.occupiedCount}/{room.capacity} filled)
                 </option>
               ))}
             </select>

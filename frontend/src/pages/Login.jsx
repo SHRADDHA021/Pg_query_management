@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Home, User, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Home, User, Lock, AlertCircle, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Login() {
@@ -25,7 +25,7 @@ export default function Login() {
         navigate('/student/dashboard');
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Login failed. Please check your credentials.';
+      const msg = err.response?.data?.message || err.message || 'Login failed. Please check your credentials.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -125,9 +125,29 @@ export default function Login() {
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', color: '#4b5563', fontSize: '0.75rem', marginTop: '1.5rem' }}>
-            Contact your hostel admin to get your login credentials.
-          </p>
+          {/* Register link */}
+          <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '1.25rem' }} />
+            <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.75rem' }}>
+              New student? Register yourself below.
+            </p>
+            <Link
+              to="/register"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                color: '#f59e0b', fontWeight: 600, fontSize: '0.875rem',
+                textDecoration: 'none', padding: '0.5rem 1rem',
+                border: '1px solid rgba(245,158,11,0.30)',
+                borderRadius: '0.625rem', background: 'rgba(245,158,11,0.08)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.15)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(245,158,11,0.08)'}
+            >
+              <UserPlus style={{ width: '1rem', height: '1rem' }} />
+              Create Account
+            </Link>
+          </div>
         </div>
       </div>
     </div>
