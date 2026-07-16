@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Home, User, Lock, AlertCircle, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, Home, User, Lock, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Login() {
@@ -72,7 +72,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
-              <label className="form-label">User ID / Username</label>
+              <label className="form-label">Username / User ID</label>
               <div style={{ position: 'relative' }}>
                 <User style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#6b7280' }} />
                 <input
@@ -124,30 +124,6 @@ export default function Login() {
               ) : 'Sign In'}
             </button>
           </form>
-
-          {/* Register link */}
-          <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '1.25rem' }} />
-            <p style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '0.75rem' }}>
-              New student? Register yourself below.
-            </p>
-            <Link
-              to="/register"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-                color: '#f59e0b', fontWeight: 600, fontSize: '0.875rem',
-                textDecoration: 'none', padding: '0.5rem 1rem',
-                border: '1px solid rgba(245,158,11,0.30)',
-                borderRadius: '0.625rem', background: 'rgba(245,158,11,0.08)',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.15)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(245,158,11,0.08)'}
-            >
-              <UserPlus style={{ width: '1rem', height: '1rem' }} />
-              Create Account
-            </Link>
-          </div>
         </div>
       </div>
     </div>

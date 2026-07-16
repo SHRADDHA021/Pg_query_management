@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
-import Register from './pages/Register';
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
@@ -50,9 +49,7 @@ export default function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
 
           {/* Student Protected Routes */}
           <Route

@@ -46,37 +46,7 @@ public class AuthService {
         }
     }
 
-    @Transactional
-    public AuthResponse register(UserDto dto, String password) {
-        if (userRepository.existsByUsername(dto.getUsername())) {
-            throw new RuntimeException("Username already taken. Please choose a different username.");
-        }
 
-        User student = User.builder()
-                .name(dto.getName())
-                .username(dto.getUsername())
-                .password(passwordEncoder.encode(password))
-                .role(User.Role.STUDENT)
-                .status(User.UserStatus.PENDING)
-                .phone(dto.getPhone())
-                .address(dto.getAddress())
-                .emergencyContact(dto.getEmergencyContact())
-                .age(dto.getAge())
-                .rentStatus("Pending")
-                .joinedDate(LocalDate.now())
-                .build();
-
-        userRepository.save(student);
-
-        // Return response without token – student must wait for admin verification
-        return AuthResponse.builder()
-                .id(student.getId())
-                .name(student.getName())
-                .username(student.getUsername())
-                .role(student.getRole())
-                .status(student.getStatus())
-                .build();
-    }
 
     public UserDto getProfile(String username) {
         User user = userRepository.findByUsername(username)

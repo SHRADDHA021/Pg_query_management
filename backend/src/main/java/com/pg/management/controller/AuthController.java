@@ -28,22 +28,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
     }
 
-    @PostMapping("/register")
-    @Operation(summary = "Student self-registration (creates PENDING account)")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody Map<String, Object> body) {
-        UserDto dto = UserDto.builder()
-                .name((String) body.get("name"))
-                .username((String) body.get("username"))
-                .phone((String) body.get("phone"))
-                .address((String) body.get("address"))
-                .emergencyContact((String) body.get("emergencyContact"))
-                .age(body.get("age") != null ? Integer.parseInt(body.get("age").toString()) : null)
-                .build();
-        String password = (String) body.get("password");
-        AuthResponse response = authService.register(dto, password);
-        return ResponseEntity.ok(ApiResponse.success(
-                "Registration successful! Your account is pending admin approval.", response));
-    }
+
 
     @GetMapping("/profile")
     @Operation(summary = "Get currently logged-in user's fresh profile data")
