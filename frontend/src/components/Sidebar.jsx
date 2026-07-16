@@ -104,9 +104,7 @@ export default function Sidebar() {
               }
               title={collapsed ? label : ''}
             >
-              <Icon className="w-5 h-5 flex-shrink-0" />
               {!collapsed && <span>{label}</span>}
-              {!collapsed && <ChevronRight className="w-3 h-3 ml-auto opacity-30" />}
             </NavLink>
           ))}
         </nav>
@@ -121,8 +119,7 @@ export default function Sidebar() {
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.08)'; e.currentTarget.style.color = '#fca5a5'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#f87171'; }}
           >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            {!collapsed && <span>Logout</span>}
+             {!collapsed && <span>Logout</span>}
           </button>
         </div>
       </div>
