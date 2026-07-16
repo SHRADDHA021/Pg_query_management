@@ -43,15 +43,6 @@ export default function Login() {
       <div style={{ position: 'relative', width: '100%', maxWidth: '420px', animation: 'fadeIn 0.5s ease-in-out' }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: '4rem', height: '4rem',
-            background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-            borderRadius: '1rem', marginBottom: '1rem',
-            boxShadow: '0 8px 25px rgba(245,158,11,0.30)'
-          }}>
-            <Home style={{ width: '2rem', height: '2rem', color: '#000' }} />
-          </div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#fff', margin: 0 }}>Welcome Back</h1>
           <p style={{ color: '#6b7280', marginTop: '0.5rem', fontSize: '0.9rem' }}>Sign in to PG Management System</p>
         </div>

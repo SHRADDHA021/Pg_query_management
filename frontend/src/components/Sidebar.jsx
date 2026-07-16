@@ -54,12 +54,6 @@ export default function Sidebar() {
         >
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}
-              >
-                <Home className="w-4 h-4" style={{ color: '#000' }} />
-              </div>
               <div>
                 <p className="font-bold text-sm" style={{ color: '#fff' }}>PG Manager</p>
                 <p className="text-xs" style={{ color: '#6b7280' }}>
