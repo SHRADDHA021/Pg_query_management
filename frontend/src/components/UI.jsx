@@ -89,9 +89,11 @@ export function StatsCard({ icon: Icon, label, value, color = 'primary', subtitl
           <p style={{ fontSize: '1.875rem', fontWeight: 700, color: c.text }}>{value}</p>
           {subtitle && <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>{subtitle}</p>}
         </div>
-        <div style={{ padding: '0.75rem', borderRadius: '0.75rem', background: c.bg }}>
-          <Icon style={{ width: '1.5rem', height: '1.5rem', color: c.text }} />
-        </div>
+        {Icon && (
+          <div style={{ padding: '0.75rem', borderRadius: '0.75rem', background: c.bg }}>
+            <Icon style={{ width: '1.5rem', height: '1.5rem', color: c.text }} />
+          </div>
+        )}
       </div>
     </div>
   );
